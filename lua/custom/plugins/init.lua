@@ -2,4 +2,25 @@
 --  I promise not to create any merge conflicts in this directory :)
 --
 -- See the kickstart.nvim README for more information
-return {}
+return {
+	{
+		"folke/noice.nvim",
+		event = "VeryLazy",
+		opts = {},
+		dependencies = {
+			"MunifTanJim/nui.nvim",
+			"rcarriga/nvim-notify",
+		},
+	},
+	{
+		"catppuccin/nvim",
+		name = "catppuccin",
+		priority = 1000
+	},
+	{
+		"max397574/better-escape.nvim",
+		config = function()
+			require("better_escape").setup()
+		end,
+	}
+}
