@@ -15,7 +15,7 @@ vim.o.relativenumber = true
 vim.o.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
-vim.o.showmode = false
+vim.o.showmode = true
 
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
@@ -79,8 +79,6 @@ vim.o.scrolloff = 10
 -- asking if you wish to save the current file(s)
 vim.o.confirm = true
 
-
-
 -------------------------------------------------------- [[ Basic Keymaps ]] ------------------------------------------------------
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
@@ -116,7 +114,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.hl.on_yank()
   end,
 })
-
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -201,7 +198,7 @@ require('lazy').setup({
     },
   },
 
--------------------------------Copilot Chat-----------------------------------
+  -------------------------------Copilot Chat-----------------------------------
   {
     'CopilotC-Nvim/CopilotChat.nvim',
     dependencies = {
@@ -210,16 +207,37 @@ require('lazy').setup({
     },
     build = 'make tiktoken', -- Only on MacOS or Linux
     opts = {
-      -- See Configuration section for options
+      -- See Configuration section for option
+      debug = false,
+      model = 'gpt-4o',
+      system_prompt = 'you are a helpfull assistant that helps the user with their code.',
+      prompts = {
+        Explain = 'explain this code',
+        Review = 'review this code ',
+        Tests = 'write tests for this code ',
+        Refactor = 'refactor this code ',
+        FixCode = 'fix this code ',
+      },
     },
     keys = {
-      { '<leader>co', '<cmd>CopilotChatOpen<cr>', desc = 'Copilot Open' },
+      { '<leader>co', '<cmd>CopilotChatOpen<cr>', desc = 'Copilot Chat Open' },
+      { '<leader>ce', '<cmd>CopilotChatExplain<cr>', desc = 'Copilot Explain' },
+      { '<leader>ct', '<cmd>CopilotChatTests<cr>', desc = 'Copilot Tests' },
+      { '<leader>cv', ':CopilotChatVisual<cr>', mode = 'x', desc = 'Copilot Visual' },
+      { '<leader>cx', ':CopilotChatInPlace<cr>', mode = 'x', desc = 'Copilot InPlace' },
     },
-    -- See Commands section for default commands if you want to lazy load on them
+    cmd = {
+      'CopilotChat',
+      'CopilotChatOpen',
+      'CopilotChatExplain',
+      'CopilotChatTests',
+      'CopilotChatVisual',
+      'CopilotChatInPlace',
+    },
   },
 
--------------------------------Themery-----------------------------------
-   {
+  -------------------------------Themery-----------------------------------
+  {
     'zaldih/themery.nvim',
     lazy = false,
     config = function()
@@ -243,7 +261,7 @@ require('lazy').setup({
     end,
   },
 
--------------------------------fuzy finder (Telescope) -----------------------------------
+  -------------------------------fuzy finder (Telescope) -----------------------------------
   {
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -268,7 +286,6 @@ require('lazy').setup({
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
 
-
     config = function()
       -- [[ Configure Telescope ]]
       require('telescope').setup {
@@ -289,7 +306,6 @@ require('lazy').setup({
           },
         },
       }
-
 
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
@@ -329,8 +345,7 @@ require('lazy').setup({
     end,
   },
 
-
--------------------------------LSP and Autocompletion-----------------------------------
+  -------------------------------LSP and Autocompletion-----------------------------------
   {
     'folke/lazy.nvim',
     version = 'stable',
@@ -368,7 +383,6 @@ require('lazy').setup({
     },
   },
 
-
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
@@ -385,11 +399,9 @@ require('lazy').setup({
     },
 
     config = function()
-
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
-
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
@@ -541,7 +553,6 @@ require('lazy').setup({
               completion = {
                 callSnippet = 'Replace',
               },
-
             },
           },
         },
@@ -655,7 +666,6 @@ require('lazy').setup({
     },
   },
 
-
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
@@ -665,16 +675,30 @@ require('lazy').setup({
       require('mini.ai').setup { n_lines = 500 }
 
       require('mini.surround').setup()
-
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
     end,
+  },
+
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = {
+      'nvim-tree/nvim-web-devicons', -- If you want to use the web devicons
+    },
+    opts = {
+      options = {
+        icons_enabled = vim.g.have_nerd_font,
+        theme = 'auto', -- Use 'auto' to automatically select the theme based on your current colorscheme
+        component_separators = { left = '', right = '' },
+        section_separators = { left = '', right = '' },
+      },
+      sections = {
+        lualine_a = { 'mode' },
+        lualine_b = { 'branch', 'diff' },
+        lualine_c = { 'filename' },
+        lualine_x = { 'diagnostics', 'encoding', 'fileformat', 'filetype' },
+        lualine_y = { 'progress' },
+        lualine_z = { 'location' },
+      },
+    },
   },
 
   -------------------------------Treesitter-----------------------------------
